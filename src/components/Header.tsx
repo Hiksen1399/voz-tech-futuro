@@ -1,12 +1,21 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, Mic } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, ShoppingCart, Mic, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { isAuthenticated, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -37,8 +46,9 @@ const Header = () => {
                 size="sm"
                 variant="ghost"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-blue-100"
+                disabled={!isAuthenticated}
               >
-                <Mic className="w-5 h-5 text-blue-600" />
+                <Mic className={`w-5 h-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
               </Button>
             </div>
           </div>
@@ -51,13 +61,51 @@ const Header = () => {
             >
               Productos
             </Link>
-            <Button variant="outline" size="sm" className="relative">
-              <ShoppingCart className="w-5 h-5 mr-2" />
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="relative"
+              disabled={!isAuthenticated}
+            >
+              <ShoppingCart className={`w-5 h-5 mr-2 ${isAuthenticated ? '' : 'text-gray-400'}`} />
               Carrito
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 3
               </span>
             </Button>
+
+            {/* Auth Section */}
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User className="w-5 h-5" />
+                    <span className="hidden md:inline">
+                      {profile?.role === 'admin' ? 'Admin' : 'Cliente'}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="font-medium">
+                    {profile?.email}
+                  </DropdownMenuItem>
+                  {profile?.role === 'admin' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">Panel de Admin</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button asChild>
+                <Link to="/auth">Iniciar Sesión</Link>
+              </Button>
+            )}
           </nav>
         </div>
       </div>

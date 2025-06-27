@@ -1,8 +1,30 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, ArrowRight } from 'lucide-react';
+import { Mic, ArrowRight, Lock } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
+
 const HeroBanner = () => {
-  return <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white py-20">
+  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
+
+  const handleVoiceAssistant = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Acceso restringido",
+        description: "Por favor, inicia sesión para usar el asistente de voz.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Aquí iría la lógica del asistente de voz
+    console.log('Activando asistente de voz...');
+  };
+
+  return (
+    <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white py-20">
       <div className="absolute inset-0 bg-black bg-opacity-20"></div>
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -17,13 +39,34 @@ const HeroBanner = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4 rounded-full font-semibold shadow-lg">
-              <Mic className="w-6 h-6 mr-3" />
-              Activar Asistente IA
+            <Button 
+              onClick={handleVoiceAssistant}
+              size="lg" 
+              className={`text-lg px-8 py-4 rounded-full font-semibold shadow-lg ${
+                isAuthenticated 
+                  ? 'bg-white text-blue-600 hover:bg-gray-100' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              disabled={!isAuthenticated}
+            >
+              {isAuthenticated ? (
+                <Mic className="w-6 h-6 mr-3" />
+              ) : (
+                <Lock className="w-6 h-6 mr-3" />
+              )}
+              {isAuthenticated ? 'Activar Asistente IA' : 'Inicia Sesión para IA'}
             </Button>
-            <Button size="lg" variant="outline" className="border-white hover:bg-white text-lg px-8 py-4 rounded-full font-semibold text-blue-600">
-              Explorar Productos
-              <ArrowRight className="w-5 h-5 ml-2" />
+            
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-white hover:bg-white text-lg px-8 py-4 rounded-full font-semibold text-blue-600"
+              asChild
+            >
+              <Link to="/products">
+                Explorar Productos
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
             </Button>
           </div>
 
@@ -41,8 +84,20 @@ const HeroBanner = () => {
               <div className="text-blue-100">Soporte IA disponible</div>
             </div>
           </div>
+
+          {!isAuthenticated && (
+            <div className="mt-8 bg-yellow-500 bg-opacity-20 border border-yellow-300 rounded-lg p-4 backdrop-blur-sm">
+              <p className="text-yellow-100">
+                <Link to="/auth" className="underline font-semibold hover:text-white">
+                  Inicia sesión
+                </Link> para desbloquear todas las funcionalidades del asistente IA y realizar compras.
+              </p>
+            </div>
+          )}
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default HeroBanner;
