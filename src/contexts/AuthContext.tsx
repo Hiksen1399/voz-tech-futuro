@@ -58,7 +58,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return;
       }
 
-      setProfile(data);
+      // Type assertion to ensure role is correct type
+      const profileData: Profile = {
+        ...data,
+        role: data.role as 'admin' | 'cliente'
+      };
+
+      setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
