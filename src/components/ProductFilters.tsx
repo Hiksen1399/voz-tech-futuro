@@ -32,7 +32,12 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
     <div className="w-full lg:w-64 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Filtros</CardTitle>
+          <CardTitle className="text-lg">
+            Filtros 
+            <span className="text-sm font-normal text-gray-500 block">
+              Tiempo real
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Filtro por categoría */}
@@ -97,6 +102,16 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
                   </div>
                 </label>
               ))}
+            </div>
+          </div>
+
+          {/* Indicador de tiempo real */}
+          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-700 font-medium">
+                Filtros en tiempo real
+              </span>
             </div>
           </div>
         </CardContent>

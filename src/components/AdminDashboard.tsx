@@ -2,8 +2,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import TopProductsChart from './TopProductsChart';
+import InteractionStats from './InteractionStats';
+import { useAdminStats } from '@/hooks/useAdminStats';
 
 const AdminDashboard = () => {
+  const { stats, loading } = useAdminStats();
+
   const productData = [
     { name: 'iPhone 15 Pro', views: 2400, searches: 400 },
     { name: 'MacBook Pro M3', views: 1398, searches: 300 },
@@ -30,35 +35,43 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8 mb-8">
-      {/* Estadísticas generales */}
+      {/* Estadísticas generales - ACTUALIZADAS CON DATOS EN TIEMPO REAL */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Productos Totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">+12% desde el mes pasado</p>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : stats.totalProducts.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">En tiempo real</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sesiones IA Activas</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Interacciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">168</div>
-            <p className="text-xs text-muted-foreground">+8% desde ayer</p>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : stats.totalInteractions.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Actualizando en vivo</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Productos Más Populares</CardTitle>
+            <CardTitle className="text-sm font-medium">Producto Más Popular</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">iPhone 15 Pro</div>
-            <p className="text-xs text-muted-foreground">2,400 visualizaciones</p>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats.topProducts[0]?.nombre || 'N/A')}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {loading ? '...' : `${stats.topProducts[0]?.popularidad || 0} interacciones`}
+            </p>
           </CardContent>
         </Card>
 
@@ -73,7 +86,13 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Gráficos */}
+      {/* NUEVOS GRÁFICOS EN TIEMPO REAL */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <TopProductsChart />
+        <InteractionStats />
+      </div>
+
+      {/* Gráficos originales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gráfico de productos más vistos */}
         <Card>
