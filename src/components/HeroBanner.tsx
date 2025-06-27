@@ -1,11 +1,8 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, ArrowRight } from 'lucide-react';
-
 const HeroBanner = () => {
-  return (
-    <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white py-20">
+  return <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white py-20">
       <div className="absolute inset-0 bg-black bg-opacity-20"></div>
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -20,18 +17,11 @@ const HeroBanner = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4 rounded-full font-semibold shadow-lg"
-            >
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4 rounded-full font-semibold shadow-lg">
               <Mic className="w-6 h-6 mr-3" />
               Activar Asistente IA
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4 rounded-full font-semibold"
-            >
+            <Button size="lg" variant="outline" className="border-white hover:bg-white text-lg px-8 py-4 rounded-full font-semibold text-blue-600">
               Explorar Productos
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
@@ -53,8 +43,6 @@ const HeroBanner = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroBanner;
