@@ -1,0 +1,9 @@
+google-genai==1.7.0
+websockets>=13.0.0,<15.1.0
+supabase
+python-dotenv==1.0.0
+langchain==0.2.0
+langchain-google-genai==0.0.9
+numpy==1.24.3
+pydub==0.25.1
+aiofiles==23.2.1 
