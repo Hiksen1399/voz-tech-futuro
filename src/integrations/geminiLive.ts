@@ -30,37 +30,29 @@ function convertToPCM(buf: Float32Array): ArrayBuffer {
 /* Construye un ArrayBuffer WAV a partir de PCM raw */
 function pcmToWav(
   pcm: Uint8Array,
-  sampleRate = 16000,
-  numChannels = 1,
-  bitsPerSample = 16
+  sampleRate: number = 16000,
+  numChannels: number = 1,
+  bitsPerSample: number = 16
 ): ArrayBuffer {
   const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
   const blockAlign = numChannels * (bitsPerSample / 8);
   const wavBuffer = new ArrayBuffer(44 + pcm.byteLength);
   const view = new DataView(wavBuffer);
 
-  /* RIFF header */
   writeString(view, 0, "RIFF");
   view.setUint32(4, 36 + pcm.byteLength, true);
   writeString(view, 8, "WAVE");
-
-  /* fmt subchunk */
   writeString(view, 12, "fmt ");
-  view.setUint32(16, 16, true);            // Subchunk1Size
-  view.setUint16(20, 1, true);             // AudioFormat (PCM)
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
   view.setUint16(22, numChannels, true);
   view.setUint32(24, sampleRate, true);
   view.setUint32(28, byteRate, true);
   view.setUint16(32, blockAlign, true);
   view.setUint16(34, bitsPerSample, true);
-
-  /* data subchunk */
   writeString(view, 36, "data");
   view.setUint32(40, pcm.byteLength, true);
-
-  /* PCM data */
   new Uint8Array(wavBuffer, 44).set(pcm);
-
   return wavBuffer;
 }
 
@@ -70,12 +62,10 @@ function writeString(view: DataView, offset: number, str: string) {
   }
 }
 
-/* ───── Captura de pantalla cada 3 s ─────────────────────────────── */
-async function startScreenCapture() {
+async function startScreenCapture(): Promise<void> {
   const stream = await navigator.mediaDevices.getDisplayMedia({
     video: { width: 1280, height: 720, frameRate: 1 },
   });
-
   const videoTrack = stream.getVideoTracks()[0];
   const imageCapture = new ImageCapture(videoTrack);
 
@@ -106,7 +96,7 @@ async function startScreenCapture() {
     }, "image/png", 0.8);
   };
 
-  await capture(); // primera instantánea
+  await capture();
   screenCaptureInterval = setInterval(capture, 3000);
   videoTrack.onended = () => {
     if (screenCaptureInterval) {
@@ -116,8 +106,7 @@ async function startScreenCapture() {
   };
 }
 
-/* ───── Captura micrófono y envía PCM ─────────────────────────────── */
-async function startAudioCapture() {
+async function startAudioCapture(): Promise<void> {
   mediaStream = await navigator.mediaDevices.getUserMedia({
     audio: {
       sampleRate: 16000,
@@ -126,15 +115,10 @@ async function startAudioCapture() {
       noiseSuppression: true,
     },
   });
-
-  audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
-    sampleRate: 16000,
-  });
-
+  audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
   const source = audioContext.createMediaStreamSource(mediaStream);
   processor = audioContext.createScriptProcessor(4096, 1, 1);
-
-  processor.onaudioprocess = (ev) => {
+  processor.onaudioprocess = (ev: AudioProcessingEvent) => {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     const pcm = convertToPCM(ev.inputBuffer.getChannelData(0));
     const b64 = btoa(String.fromCharCode(...new Uint8Array(pcm)));
@@ -148,31 +132,25 @@ async function startAudioCapture() {
       })
     );
   };
-
   source.connect(processor);
   processor.connect(audioContext.destination);
 }
 
-/* ───── API pública ──────────────────────────────────────────────── */
 export async function startGeminiLive(
   onError?: (msg: string) => void,
   onStatus?: (status: 'disconnected' | 'connecting' | 'connected') => void,
   onContext?: (context: string) => void
-) {
-  // Guardar callbacks
+): Promise<void> {
   onErrorCallback = onError || null;
   onStatusCallback = onStatus || null;
   onContextCallback = onContext || null;
 
-  // Notificar estado de conexión
   onStatusCallback?.('connecting');
-
   socket = new WebSocket("ws://localhost:9084");
 
   socket.onopen = async () => {
     console.log("🚀 WS abierto - Conectando con Gemini Live RAG");
     onStatusCallback?.('connected');
-    
     socket!.send(JSON.stringify({ config: "start" }));
     try {
       await startScreenCapture();
@@ -185,47 +163,30 @@ export async function startGeminiLive(
     }
   };
 
-  socket.onmessage = async (ev) => {
+  socket.onmessage = (ev: MessageEvent) => {
     console.log("📥 Mensaje WS del servidor:", ev.data.slice(0, 100));
     try {
       const data = JSON.parse(ev.data);
-
-      // Manejar contexto de producto
-      if (data.context) {
-        onContextCallback?.(data.context);
-      }
-
-      // Manejar estado de conexión
-      if (data.status) {
-        onStatusCallback?.(data.status);
-      }
-
-      // Reproducción ultra simple y efectiva
+      if (data.context) onContextCallback?.(data.context);
+      if (data.status) onStatusCallback?.(data.status);
       if (data.audio) {
-        console.log(🎵 Fragmento de audio recibido, formato: ${data.format || 'wav'}, tamaño: ${data.audio.length} chars);
-        
-        // Reproducción inmediata con delay fijo
+        console.log(`🎵 Fragmento de audio recibido, formato: ${data.format || 'wav'}, tamaño: ${data.audio.length} chars`);
         setTimeout(() => {
           try {
             console.log("🔊 Reproduciendo fragmento WAV...");
-            const audioEl = new Audio(data:audio/wav;base64,${data.audio});
-            audioEl.play().catch(e => console.error("Error reproduciendo WAV:", e));
+            const audioEl = new Audio(`data:audio/wav;base64,${data.audio}`);
+            audioEl.play().catch((e) => console.error("Error reproduciendo WAV:", e));
           } catch (e) {
             console.error("❌ Error reproduciendo fragmento:", e);
           }
-        }, 800); // Delay fijo de 800ms
+        }, 800);
       }
-
-      // Manejar transcripciones
       if (data.transcription) {
-        console.log(📝 ${data.transcription.sender}: ${data.transcription.text});
+        console.log(`📝 ${data.transcription.sender}: ${data.transcription.text}`);
       }
-
-      // Manejar texto del asistente
       if (data.text) {
-        console.log(🤖 Asistente: ${data.text});
+        console.log(`🤖 Asistente: ${data.text}`);
       }
-
     } catch (e) {
       console.error("WS message error:", e);
     }
@@ -236,7 +197,7 @@ export async function startGeminiLive(
     onErrorCallback?.("Error de conexión con el servidor de IA");
     onStatusCallback?.('disconnected');
   };
-  
+
   socket.onclose = (e) => {
     console.warn("🔒 WS cerrado", e);
     onStatusCallback?.('disconnected');
@@ -244,28 +205,22 @@ export async function startGeminiLive(
   };
 }
 
-export function stopGeminiLive() {
+export function stopGeminiLive(): void {
   if (screenCaptureInterval) clearInterval(screenCaptureInterval);
   screenCaptureInterval = null;
-
   if (processor) processor.disconnect();
   if (audioContext) audioContext.close();
-
   mediaStream?.getTracks().forEach((t) => t.stop());
   mediaStream = null;
   processor = null;
   audioContext = null;
-
   socket?.close();
   socket = null;
-
-  // Limpiar callbacks
   onErrorCallback = null;
   onStatusCallback = null;
   onContextCallback = null;
 }
 
-/* ───── Compatibilidad rápida ─────────────────────────────────────── */
 export function checkBrowserCompatibility(): { supported: boolean; message?: string } {
   if (!navigator.mediaDevices?.getUserMedia)
     return { supported: false, message: "Tu navegador no soporta captura de audio." };
