@@ -1,10 +1,41 @@
-# Entornos virtuales Python
-/backend/env/
-/backend/venv/
-/backend/venv311/
+# === Node.js ===
+node_modules/
+frontend/voz-tech-futuro/node_modules/
 
-# Cachés y compilados de Python
+# === Python ===
+**/env*/
+**/venv*/
+**/venv*/**
 __pycache__/
-/*.py[cod]
+**/__pycache__/
+*.py[cod]
 *.pyd
+*.pyo
+*.pyc
+*.egg-info/
 python.exe
+pip-log.txt
+pip-delete-this-directory.txt
+
+# === VSCode y sistema ===
+.vscode/
+.DS_Store
+Thumbs.db
+
+# === Archivos de entorno y config ===
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# === Archivos de build y logs ===
+dist/
+build/
+*.log
+
+# === Otros ===
+*.sqlite3
+*.db
+*.bak
+*.tmp
