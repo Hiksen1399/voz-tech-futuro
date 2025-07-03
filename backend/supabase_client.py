@@ -6,7 +6,7 @@ import numpy as np
 from dotenv import load_dotenv
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import SupabaseVectorStore
+from langchain_community.vectorstores import SupabaseVectorStore
 from langchain.schema import Document
 
 load_dotenv()
@@ -47,7 +47,13 @@ class SupabaseManager:
             return []
 
     def create_product_document(self, product):
-        # Armo el contenido del documento
+        # Copia el producto para no modificar el original
+        product = dict(product)
+        # Guarda el id como string para los metadatos y luego elimínalo del diccionario
+        producto_id = str(product["id"]) if "id" in product else ""
+        if "id" in product:
+            del product["id"]
+
         product_text = (
             "Producto: " + product["nombre"] + "\n"
             "Descripción: " + product["descripcion"] + "\n"
@@ -58,14 +64,13 @@ class SupabaseManager:
             "Características: " + product.get("caracteristicas", "No especificadas")
         )
 
-        # Metadatos del documento
         metadata = {
-            "producto_id": product["id"],
-            "nombre": product["nombre"],
-            "categoria": product["categoria"],
-            "precio": product["precio"],
-            "stock": product["stock"],
-            "popularidad": product["popularidad"],
+            "producto_id": producto_id,
+            "nombre": str(product["nombre"]),
+            "categoria": str(product["categoria"]),
+            "precio": float(product["precio"]),
+            "stock": int(product["stock"]),
+            "popularidad": int(product["popularidad"]),
             "tipo": "producto"
         }
 
@@ -151,7 +156,32 @@ class SupabaseManager:
             print("Generando embeddings para", len(products), "productos...")
             docs = []
             for p in products:
-                docs.append(self.create_product_document(p))
+                # Elimina el campo 'id' del diccionario antes de crear el Document
+                p = dict(p)
+                if "id" in p:
+                    producto_id = str(p["id"])
+                    del p["id"]
+                else:
+                    producto_id = ""
+                product_text = (
+                    "Producto: " + p["nombre"] + "\n"
+                    "Descripción: " + p["descripcion"] + "\n"
+                    "Categoría: " + p["categoria"] + "\n"
+                    "Precio: $" + str(p["precio"]) + "\n"
+                    "Stock: " + str(p["stock"]) + " unidades\n"
+                    "Popularidad: " + str(p["popularidad"]) + "\n"
+                    "Características: " + p.get("caracteristicas", "No especificadas")
+                )
+                metadata = {
+                    "producto_id": producto_id,
+                    "nombre": str(p["nombre"]),
+                    "categoria": str(p["categoria"]),
+                    "precio": float(p["precio"]),
+                    "stock": int(p["stock"]),
+                    "popularidad": int(p["popularidad"]),
+                    "tipo": "producto"
+                }
+                docs.append(Document(page_content=product_text, metadata=metadata))
             split_docs = self.text_splitter.split_documents(docs)
             SupabaseVectorStore.from_documents(
                 documents=split_docs,
